@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Power Solar | Interactive Consultation & Sizing Calculator</title>
+    <style>
+        :root {
+            --primary: #0052cc;
+            --primary-dark: #003d99;
+            --accent: #ff8b00;
+            --dark: #172b4d;
+            --light: #f4f5f7;
+            --white: #ffffff;
+            --gray: #6b778c;
+            --success: #36b37e;
+            --border: #dfe1e6;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: var(--dark);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background: var(--white);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .header {
+            background: var(--dark);
+            color: var(--white);
+            padding: 20px 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .logo-placeholder {
+            background: var(--accent);
+            color: var(--white);
+            font-weight: bold;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            letter-spacing: 0.5px;
+        }
+        .header h1 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .progress-bar {
+            height: 4px;
+            background: var(--border);
+            width: 100%;
+        }
+        .progress-fill {
+            height: 100%;
+            background: var(--accent);
+            width: 20%;
+            transition: width 0.3s ease;
+        }
+        .content {
+            padding: 30px;
+            min-height: 380px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .step-container {
+            display: none;
+        }
+        .step-container.active {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        h2 {
+            font-size: 22px;
+            color: var(--dark);
+            margin-bottom: 8px;
+        }
+        p.subtitle {
+            color: var(--gray);
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            font-weight: 600;
+            font-size: 13px;
+            margin-bottom: 8px;
+            color: var(--dark);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        input, select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        input:focus, select:focus {
+            border-color: var(--primary);
+        }
+        .result-card {
+            background: var(--light);
+            border-left: 4px solid var(--primary);
+            padding: 16px;
+            border-radius: 0 8px 8px 0;
+            margin-top: 20px;
+        }
+        .result-card h4 {
+            font-size: 14px;
+            color: var(--gray);
+            margin-bottom: 4px;
+        }
+        .result-card .value {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--dark);
+        }
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            border-top: 1px solid var(--border);
+            padding-top: 20px;
+        }
+        button {
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            transition: background 0.2s;
+        }
+        .btn-secondary {
+            background: var(--light);
+            color: var(--dark);
+        }
+        .btn-secondary:hover {
+            background: var(--border);
+        }
+        .btn-primary {
+            background: var(--primary);
+            color: var(--white);
+        }
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+        .summary-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <div class="brand">
+            <div class="logo-placeholder">POWER SOLAR</div>
+            <h1>Consultant Sizing Guide</h1>
+        </div>
+        <div id="step-indicator" style="font-size: 14px; color: var(--accent); font-weight: 600;">Step 1 of 5</div>
+    </div>
+    <div class="progress-bar">
+        <div class="progress-fill" id="progress"></div>
+    </div>
+
+    <div class="content">
+        <!-- STEP 1: Annual Consumption -->
+        <div class="step-container active" id="step-1">
+            <h2>Client Energy Consumption</h2>
+            <p class="subtitle">Enter the sum of the client's past 12 months of utility bills (kWh) from their LUMA statement.</p>
+            
+            <div class="form-group">
+                <label for="annual-kwh">Annual Consumption (kWh)</label>
+                <input type="number" id="annual-kwh" placeholder="Enter annual kWh (e.g. 7800)" value="7800" min="0" max="50000" oninput="calculate()">
+            </div>
+            <div class="result-card">
+                <h4>Monthly Average Estimate</h4>
+                <div class="value" id="monthly-kwh">650 kWh / month</div>
+            </div>
+        </div>
+
+        <!-- STEP 2: System Sizing -->
+        <div class="step-container" id="step-2">
+            <h2>System Capacity Sizing</h2>
+            <p class="subtitle">Calculated by dividing annual consumption by Puerto Rico's benchmark 1,850 average sun hours.</p>
+            
+            <div class="form-group">
+                <label for="sun-hours">Benchmark Peak Sun Hours</label>
+                <input type="number" id="sun-hours" value="5.5" step="0.1" oninput="calculate()">
+            </div>
+            <div class="result-card" style="border-color: var(--accent);">
+                <h4>Required System Size</h4>
+                <div class="value" id="system-size-kw">4.22 kW</div>
+            </div>
+        </div>
+
+        <!-- STEP 3: Panel Selection -->
+        <div class="step-container" id="step-3">
+            <h2>Hardware & Panel Count</h2>
+            <p class="subtitle">Using Canadian Solar TOPCon Bifacial 610W panels for high efficiency and dual-side generation.</p>
+            
+            <div class="form-group">
+                <label for="panel-watt">Selected Panel Wattage (W)</label>
+                <select id="panel-watt" onchange="calculate()">
+                    <option value="610" selected>Canadian Solar 610W Bifacial</option>
+                    <option value="550">Standard 550W Panel</option>
+                </select>
+            </div>
+            <div class="result-card">
+                <h4>Required Number of Panels</h4>
+                <div class="value" id="panel-count">7 Panels</div>
+            </div>
+        </div>
+
+        <!-- STEP 4: Daily Averages -->
+        <div class="step-container" id="step-4">
+            <h2>Daily Load vs. Production</h2>
+            <p class="subtitle">Comparing daily baseline draw against daily system yield across 365 days.</p>
+            
+            <div class="summary-grid">
+                <div class="result-card">
+                    <h4>Daily Consumption</h4>
+                    <div class="value" id="daily-load" style="font-size: 20px;">21.37 kWh</div>
+                </div>
+                <div class="result-card" style="border-color: var(--success);">
+                    <h4>Daily Production</h4>
+                    <div class="value" id="daily-prod" style="font-size: 20px; color: var(--success);">23.49 kWh</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- STEP 5: Net-Zero Summary & Lead Capture -->
+        <div class="step-container" id="step-5">
+            <h2>Net Metering & Savings Summary</h2>
+            <p class="subtitle">Final proposal metrics proving 100%+ offset and net-zero grid export.</p>
+            
+            <div class="result-card" style="border-color: var(--success); background: #e3fcef;">
+                <h4>Energy Offset Ratio</h4>
+                <div class="value" id="offset-ratio" style="color: var(--success); font-size: 28px;">109.9%</div>
+            </div>
+            
+            <div class="form-group" style="margin-top: 20px;">
+                <label for="client-email">Save My Proposal & Join List</label>
+                <input type="email" id="client-email" placeholder="Enter your email address (e.g. name@email.com)">
+            </div>
+            
+            <p style="margin-top: 10px; font-size: 13px; color: var(--gray);">
+                ✅ System covers 100% of energy needs, exports surplus to LUMA under net metering, and eliminates skyrocketing bills.
+            </p>
+        </div>
+
+        <div class="nav-buttons">
+            <button class="btn-secondary" id="prev-btn" onclick="changeStep(-1)" style="visibility: hidden;">Back</button>
+            <button class="btn-primary" id="next-btn" onclick="changeStep(1)">Next Step</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentStep = 1;
+    const totalSteps = 5;
+
+    function calculate() {
+        let annualKwhInput = document.getElementById('annual-kwh').value;
+        let annualKwh = annualKwhInput === "" ? 0 : parseFloat(annualKwhInput) || 0;
+        let sunHours = parseFloat(document.getElementById('sun-hours').value) || 5.5;
+        let panelWatt = parseFloat(document.getElementById('panel-watt').value) || 610;
+
+        // Step 1 outputs
+        let monthlyKwh = (annualKwh / 12).toFixed(1);
+        document.getElementById('monthly-kwh').innerText = monthlyKwh + ' kWh / month';
+
+        // Step 2 outputs (System Size kW = Annual / 1850)
+        let systemSizeKw = (annualKwh / 1850).toFixed(2);
+        document.getElementById('system-size-kw').innerText = systemSizeKw + ' kW';
+
+        // Step 3 outputs (Panel Count = System Size kW / (Panel Watt / 1000))
+        let panelKw = panelWatt / 1000;
+        let panelCount = annualKwh === 0 ? 0 : Math.ceil(systemSizeKw / panelKw);
+        document.getElementById('panel-count').innerText = panelCount + ' Panels (' + (panelCount * panelWatt) + 'W Total)';
+
+        // Step 4 outputs
+        let dailyLoad = (annualKwh / 365).toFixed(2);
+        let dailyProd = ((panelCount * panelWatt / 1000) * sunHours).toFixed(2);
+        document.getElementById('daily-load').innerText = dailyLoad + ' kWh/day';
+        document.getElementById('daily-prod').innerText = dailyProd + ' kWh/day';
+
+        // Step 5 outputs
+        let offsetRatio = dailyLoad > 0 ? ((dailyProd / dailyLoad) * 100).toFixed(1) : '0.0';
+        document.getElementById('offset-ratio').innerText = offsetRatio + '% Offset';
+    }
+
+    function changeStep(direction) {
+        if (direction > 0 && currentStep === totalSteps) {
+            let email = document.getElementById('client-email').value || 'Not provided';
+            let annualKwh = document.getElementById('annual-kwh').value;
+            let systemSize = document.getElementById('system-size-kw').innerText;
+            let panels = document.getElementById('panel-count').innerText;
+            let offset = document.getElementById('offset-ratio').innerText;
+            
+            let subject = encodeURIComponent("Solar Consultation Sizing Request - " + email);
+            let body = encodeURIComponent("Hello André,\n\nI completed the Power Solar Sizing Calculator.\n\nMy Details:\n- Email: " + email + "\n- Annual Consumption: " + annualKwh + " kWh\n- System Size: " + systemSize + "\n- Panels: " + panels + "\n- Offset: " + offset + "\n\nPlease follow up with me regarding my installation.");
+            
+            window.location.href = "mailto:AndrePowerSolar@gmail.com?subject=" + subject + "&body=" + body;
+            return;
+        }
+
+        document.getElementById(`step-${currentStep}`).classList.remove('active');
+        currentStep += direction;
+        
+        if (currentStep < 1) currentStep = 1;
+        if (currentStep > totalSteps) currentStep = totalSteps;
+
+        document.getElementById(`step-${currentStep}`).classList.add('active');
+        
+        // Update UI elements
+        document.getElementById('step-indicator').innerText = `Step ${currentStep} of ${totalSteps}`;
+        document.getElementById('progress').style.width = (currentStep / totalSteps * 100) + '%';
+        
+        document.getElementById('prev-btn').style.visibility = currentStep === 1 ? 'hidden' : 'visible';
+        
+        if (currentStep === totalSteps) {
+            calculate();
+            document.getElementById('next-btn').innerText = 'Email AndrePowerSolar@gmail.com';
+        } else {
+            document.getElementById('next-btn').innerText = 'Next Step';
+        }
+    }
+
+    // Initialize
+    calculate();
+</script>
+
+</body>
+</html>
